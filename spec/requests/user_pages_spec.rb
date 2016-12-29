@@ -48,7 +48,15 @@ describe "UserPages" do
 					it { should have_selector('div.alert.alert-success', text: 'Welcome to Sample App!') }
 					it { should have_selector('div', text: user.name) }
 					it { should have_selector('img.gravatar') }
+					it { should have_link('Sign Out') }
+
+					describe "followed by signout" do 
+						before { click_link "Sign Out" }
+						it { should have_link('Sign In') }
+					end
 				end
+
+
 			end
 
 	

@@ -32,6 +32,7 @@ describe "AuthenticationPages" do
  			it { should have_link('Settings',		href: edit_user_path(user)) }
  			it { should have_link('Sign Out', 		href: signout_path) }
  			it { should_not have_link('Sign In',	href: signin_path) }
+
  		end
  	end
 
@@ -39,6 +40,9 @@ describe "AuthenticationPages" do
 
  		describe "for non-signed-in users" do 
  			let(:user){FactoryGirl.create(:user)}
+
+ 			it{ should_not have_link('Profile') }
+ 			it{ should_not have_link('Settings') }
 
  			describe "in the Users controller" do 
  				describe "visiting the edit page" do 
@@ -55,7 +59,7 @@ describe "AuthenticationPages" do
  					before{ visit users_path }
  					it{ should have_title("Sign In") }
  				end
- 			end
+ 			end 			
 
  			describe "when attempting to visit a protected page" do 
  				before do  
@@ -69,7 +73,33 @@ describe "AuthenticationPages" do
  					it "should render the desired protected page" do
  						expect(page).to have_title(full_title("Edit user")) 
  					end
- 				end
+
+	 				describe "when signin again" do 
+	 					before do 
+	 						click_link "Sign Out"
+	 						sign_in user
+	 					end
+
+	 					it "should render the default(profile) page" do
+	 						expect(page).to have_title(user.name)
+	 					end
+	 				end
+	 			end	
+ 			end
+ 		end
+
+ 		describe "for signed-in users" do 
+ 			let(:user){ FactoryGirl.create(:user) }
+ 			before{ sign_in user, no_capybara: true }
+
+ 			describe "visiting the signup page" do 
+ 				before{ get signup_path }
+ 				specify{ expect(response).to redirect_to(root_path) }
+ 			end
+
+ 			describe "submitting to the create action" do 
+ 				before{ post users_path  }
+ 				specify{ expect(response).to redirect_to(root_path) }
  			end
  		end
 
@@ -84,10 +114,31 @@ describe "AuthenticationPages" do
  				specify{ expect(response).to redirect_to(root_path) }
  			end
 
- 			describe "subnitting a PATCH request to the Users#update action" do 
+ 			describe "submitting a PATCH request to the Users#update action" do 
  				before{ patch user_path(wrong_user) }
  				specify{ expect(response).to redirect_to(root_path) }
  			end
+ 		end
+
+ 		describe "as non-admin user" do 
+ 			let(:user){ FactoryGirl.create(:user) }
+ 			let(:non_admin){ FactoryGirl.create(:user) }
+ 			before { sign_in non_admin, no_capybara: true }
+
+ 			describe "submitting a DELETE request to the Users#destroy action" do 
+ 				before{ delete user_path(user) }
+ 				specify{ expect(response).to redirect_to(root_path) }
+ 			end
+ 		end
+
+ 		describe "as admin user" do 
+ 			let(:admin){ FactoryGirl.create(:admin) }
+ 			before do 
+ 				sign_in admin, no_capybara: true
+ 				delete user_path(admin) 
+ 			end
+ 			
+ 			specify{ expect(response).to redirect_to root_path }	
  		end
  	end
 end

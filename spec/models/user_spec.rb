@@ -86,7 +86,7 @@ describe User do
 		it {should_not be_valid}
 	end
 
-	describe "when password dosen't match confiration" do
+	describe "when password dosen't match confimation" do
 		before { @user.password_confirmation = "45643" }
 
 		it { should_not be_valid } 
@@ -125,6 +125,7 @@ describe User do
 			@user.save!
 			@user.toggle(:admin)
 		end
-			it{ should be_admin }
+		
+		it{ should be_admin }
 	end
 end

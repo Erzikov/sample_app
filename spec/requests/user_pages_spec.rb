@@ -5,57 +5,57 @@ describe "UserPages" do
 	subject{page}
 
 	describe "Sign Up page" do 
-			before{visit signup_path}
+		before{visit signup_path}
 
-			it { should have_content('Sign Up') }
-			it { should have_title(full_title('Sign Up')) }
+		it { should have_content('Sign Up') }
+		it { should have_title(full_title('Sign Up')) }
 
-			let(:submit){ "Create my account" }
+		let(:submit){ "Create my account" }
 
-			describe "with invalid information" do 
-				it "should not create a user" do
-					expect{click_button submit}.not_to change(User, :count)
-				end
-
-				describe "after submission" do
-					before{click_button submit}
-
-					it { should have_title('Sign Up') }
-					it { should have_content('error') }
-					it { should have_selector('div#error_explanation') }
-					it { should have_selector('div.alert.alert-error', text: "The form contains") }
-					it { should have_selector('div.field_with_errors') }
-				end
+		describe "with invalid information" do 
+			it "should not create a user" do
+				expect{ click_button submit }.not_to change(User, :count)
 			end
 
-			describe "with valid information" do
-				before do 
-					fill_in "Name", 		with: "User"
-					fill_in "Email", 		with: "user@lol.com"
-					fill_in "Password", 	with: "123456"
-					fill_in "Confirmation",	with: "123456"
-				end
+			describe "after submission" do
+				before{ click_button submit }
 
-				it "should create a user" do
-					expect{click_button submit}.to change(User, :count).by(1)
-				end
+				it { should have_title('Sign Up') }
+				it { should have_content('error') }
+				it { should have_selector('div#error_explanation') }
+				it { should have_selector('div.alert.alert-error', text: "The form contains") }
+				it { should have_selector('div.field_with_errors') }
+			end
+		end
 
-				describe "after signin user" do
-					before{ click_button submit } 
-					let(:user){User.find_by(email: "user@lol.com") }
+		describe "with valid information" do
+			before do 
+				fill_in "Name", 			with: "User"
+				fill_in "Email", 			with: "user@lol.com"
+				fill_in "Password", 		with: "123456"
+				fill_in "Confirm Password",	with: "123456"
+			end
 
-					it { should have_title(full_title(user.name)) }
-					it { should have_selector('div.alert.alert-success', text: 'Welcome to Sample App!') }
-					it { should have_selector('div', text: user.name) }
-					it { should have_selector('img.gravatar') }
-					it { should have_link('Sign Out') }
+			it "should create a user" do
+				expect{click_button submit}.to change(User, :count).by(1)
+			end
 
-					describe "followed by signout" do 
-						before { click_link "Sign Out" }
-						it { should have_link('Sign In') }
-					end
+			describe "after signin user" do
+				before{ click_button submit } 
+				let(:user){User.find_by(email: "user@lol.com") }
+
+				it { should have_title(full_title(user.name)) }
+				it { should have_selector('div.alert.alert-success', text: 'Welcome to Sample App!') }
+				it { should have_selector('div', text: user.name) }
+				it { should have_selector('img.gravatar') }
+				it { should have_link('Sign Out') }
+
+				describe "followed by signout" do 
+					before { click_link "Sign Out" }
+					it { should have_link('Sign In') }
 				end
 			end
+		end
 	end
 
 	describe "Profile page" do
@@ -102,14 +102,26 @@ describe "UserPages" do
 			specify{ expect(user.reload.name).to eq new_name }
 			specify{ expect(user.reload.email).to eq new_email }
 		end
+
+		describe "forbidden attributes" do 
+			let(:params) do 
+				{ user:{ admin: true, password: user.password, 
+									password_confirmation: user.password } }
+			end
+			before do 
+				sign_in user, no_capybara: true
+				patch user_path(user), params
+			end
+			specify{ expect(user.reload).not_to be_admin }
+		end
  	end
 
- 	describe "Index" do  
- 			let(:user){ FactoryGirl.create(:user) }
- 			before(:each) do
- 				sign_in user
- 				visit users_path
- 			end
+ 	describe "Index" do
+ 		let(:user){ FactoryGirl.create(:user) }
+ 		before(:each) do
+ 			sign_in user
+ 			visit users_path
+ 		end
 
  		it{ should have_title(full_title("All users")) }
  		it{ should have_content("All users") }

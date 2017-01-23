@@ -74,6 +74,19 @@ describe "UserPages" do
 			it{ should have_content(user.microposts.count) }
 		end 
 
+		describe "following/followers stats" do 
+			let(:other_user){ FactoryGirl.create(:user) }
+			before do 
+				other_user.follow!(user)
+				sign_in user
+				visit user_path(user)
+			end
+
+			it{ should have_link('1 followers', href: followers_user_path(user)) }
+			it{ should have_link('0 following', href: following_user_path(user)) }
+
+		end	
+
 	end
 
 	describe "Edit" do
@@ -167,6 +180,34 @@ describe "UserPages" do
  				end
  				it{ should_not have_link('delete', href: user_path(admin)) }
  			end
+ 		end
+ 	end
+
+ 	describe "following/followers" do 
+ 		let(:user){ FactoryGirl.create(:user) }
+ 		let(:other_user){ FactoryGirl.create(:user) }
+ 		before{ user.follow!(other_user) }
+
+ 		describe "followed user" do 
+ 			before do 
+ 				sign_in user
+ 				visit following_user_path(user)
+ 			end
+
+ 			it{ should have_title("Following") }
+ 			it{ should have_selector("h3", text: "Following") }
+ 			it{ should have_link(other_user.name, href: user_path(other_user)) }
+ 		end
+
+ 		describe "followers" do 
+ 			before do 
+ 				sign_in other_user
+ 				visit followers_user_path(other_user)
+ 			end
+
+ 			it{ should have_title("Followers") }
+ 			it{ should have_selector("h3", text: "Followers") }
+ 			it{ should have_link(user.name, href: user_path(user)) }
  		end
  	end
 end
